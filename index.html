@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Knife Hit HD</title>
+    <title>Knife Hit HD Fix</title>
     <style>
         body { margin: 0; background-color: #1a1a2e; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; }
         canvas { 
@@ -13,7 +13,7 @@
             image-rendering: -webkit-optimize-contrast;
             image-rendering: crisp-edges;
         }
-        #ui { position: absolute; top: 5%; color: #fff; font-family: 'Arial'; font-size: 80px; font-weight: bold; pointer-events: none; }
+        #ui { position: absolute; top: 5%; color: #fff; font-family: 'Arial'; font-size: 80px; font-weight: bold; pointer-events: none; z-index: 10; }
     </style>
 </head>
 <body>
@@ -28,16 +28,27 @@
 
     ctx.imageSmoothingEnabled = false;
 
-    // --- استدعاء الصور من مستودعك ---
+    // --- تحميل الصور ---
     const targetImg = new Image();
-    // استدعاء هدف خشبي خارجي لضمان بقاء اللعبة تعمل
     targetImg.src = 'https://raw.githubusercontent.com/Ademking/Knife-Hit-Clone/master/assets/target.png'; 
 
     const knifeImg = new Image();
-    // هذا هو اسم ملفك كما ظهر في الصورة الأخيرة التي أرفقتها
+    // استخدام اسم ملفك الجديد
     knifeImg.src = 'av0z1rcn4.webp.png'; 
 
     let score = 0, angle = 0, knives = [], currentKnifeY = 500, isShooting = false, rotationSpeed = 0.03;
+    let imagesLoaded = 0;
+
+    // وظيفة للتأكد من تحميل الصور قبل بدء الرسم
+    function imageLoaded() {
+        imagesLoaded++;
+        if (imagesLoaded === 2) {
+            requestAnimationFrame(draw);
+        }
+    }
+
+    knifeImg.onload = imageLoaded;
+    targetImg.onload = imageLoaded;
 
     function resetGame() {
         score = 0; angle = 0; knives = []; currentKnifeY = 500; isShooting = false; rotationSpeed = 0.03;
@@ -47,31 +58,31 @@
     function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+        // 1. رسم الهدف
         ctx.save();
         ctx.translate(180, 200);
         ctx.rotate(angle);
-        if (targetImg.complete) ctx.drawImage(targetImg, -80, -80, 160, 160);
+        ctx.drawImage(targetImg, -80, -80, 160, 160);
 
+        // 2. رسم السكاكين المغروزة
         knives.forEach(kAngle => {
             ctx.save();
             ctx.rotate(kAngle);
-            if (knifeImg.complete) {
-                ctx.translate(0, 70);
-                ctx.rotate(Math.PI); 
-                // رسم السكين بحجم HD واضح
-                ctx.drawImage(knifeImg, -20, -60, 40, 120); 
-            }
+            ctx.translate(0, 70);
+            ctx.rotate(Math.PI); 
+            ctx.drawImage(knifeImg, -20, -60, 40, 120); 
             ctx.restore();
         });
         ctx.restore();
 
-        if (knifeImg.complete) {
-            ctx.drawImage(knifeImg, 160, currentKnifeY, 40, 120);
-        }
+        // 3. رسم سكين اللاعب (ثابتة في مكانها بالأسفل)
+        ctx.drawImage(knifeImg, 160, currentKnifeY, 40, 120);
 
         if (isShooting) {
             currentKnifeY -= 35;
-            if (currentKnifeY <= 260) checkCollision();
+            if (currentKnifeY <= 260) {
+                checkCollision();
+            }
         }
 
         angle += rotationSpeed;
@@ -100,7 +111,6 @@
     window.addEventListener('mousedown', shoot);
     window.addEventListener('touchstart', (e) => { e.preventDefault(); shoot(); });
 
-    draw();
 </script>
 </body>
 </html>
