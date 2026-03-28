@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Knife Hit Pro</title>
+    <style>
+        body { margin: 0; background-color: #1a1a2e; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        canvas { 
+            background: radial-gradient(#2c3e50, #000); 
+            border-radius: 15px; 
+            touch-action: none;
+            /* منع تنعيم الصورة للحفاظ على حدة السكين الأصلية */
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+        }
+        #ui { position: absolute; top: 5%; color: #fff; font-family: 'Arial'; font-size: 80px; font-weight: bold; pointer-events: none; }
+    </style>
+</head>
+<body>
+    <div id="ui">0</div>
+    <canvas id="game"></canvas>
+
+<script>
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+    canvas.width = 360;
+    canvas.height = 600;
+
+    // تعطيل التنعيم البرمجي لضمان بقاء السكين حادة
+    ctx.imageSmoothingEnabled = false;
+
+    const targetImg = new Image();
+    targetImg.src = 'https://raw.githubusercontent.com/Ademking/Knife-Hit-Clone/master/assets/target.png'; 
+
+    const knifeImg = new Image();
+    // الرابط المباشر (Raw) لصورتك على جيت هاب
+    knifeImg.src = 'https://github.com/apdq1132-hash/sken/raw/4d27e17a302e7dc4a848ab70e9e946be3a307206/1774680334856.png.png';
+
+    let score = 0, angle = 0, knives = [], currentKnifeY = 500, isShooting = false, rotationSpeed = 0.03;
+
+    function resetGame() {
+        score = 0; angle = 0; knives = []; currentKnifeY = 500; isShooting = false; rotationSpeed = 0.03;
+        document.getElementById('ui').innerText = score;
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        ctx.save();
+        ctx.translate(180, 200);
+        ctx.rotate(angle);
+        if (targetImg.complete) ctx.drawImage(targetImg, -80, -80, 160, 160);
+
+        knives.forEach(kAngle => {
+            ctx.save();
+            ctx.rotate(kAngle);
+            if (knifeImg.complete) {
+                ctx.translate(0, 70);
+                ctx.rotate(Math.PI); 
+                // رسم السكين بحجمها الطبيعي دون تشويه
+                ctx.drawImage(knifeImg, -25, -65, 50, 130); 
+            }
+            ctx.restore();
+        });
+        ctx.restore();
+
+        if (knifeImg.complete) {
+            ctx.drawImage(knifeImg, 155, currentKnifeY, 50, 130);
+        }
+
+        if (isShooting) {
+            currentKnifeY -= 35;
+            if (currentKnifeY <= 260) {
+                checkCollision();
+            }
+        }
+
+        angle += rotationSpeed;
+        requestAnimationFrame(draw);
+    }
+
+    function checkCollision() {
+        let currentAngle = (-angle) % (Math.PI * 2);
+        if (currentAngle < 0) currentAngle += (Math.PI * 2);
+        let hit = knives.some(k => Math.abs(currentAngle - (k % (Math.PI * 2))) < 0.4);
+
+        if (hit) {
+            alert("خسرت! نتيجتك: " + score);
+            resetGame();
+        } else {
+            knives.push(-angle);
+            score++;
+            document.getElementById('ui').innerText = score;
+            isShooting = false;
+            currentKnifeY = 500;
+            rotationSpeed += 0.002;
+        }
+    }
+
+    const shoot = () => { if (!isShooting) isShooting = true; };
+    window.addEventListener('mousedown', shoot);
+    window.addEventListener('touchstart', (e) => { e.preventDefault(); shoot(); });
+
+    draw();
+</script>
+</body>
+</html>
