@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Knife Hit Pro</title>
+    <title>Knife Hit HD</title>
     <style>
         body { margin: 0; background-color: #1a1a2e; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; }
         canvas { 
             background: radial-gradient(#2c3e50, #000); 
             border-radius: 15px; 
             touch-action: none;
-            /* كود لتحسين دقة الصورة ومنع التغبيش */
             image-rendering: -webkit-optimize-contrast;
             image-rendering: crisp-edges;
         }
@@ -27,17 +26,16 @@
     canvas.width = 360;
     canvas.height = 600;
 
-    // تعطيل التنعيم البرمجي لضمان بقاء السكين حادة وواضحة
     ctx.imageSmoothingEnabled = false;
 
-    // --- استدعاء الملفات من المستودع مباشرة ---
+    // --- استدعاء الصور من مستودعك ---
     const targetImg = new Image();
-    // إذا كان عندك صورة هدف في المستودع ضع اسمها هنا، حالياً سأضع دائرة بنية احتياطية
-    targetImg.src = 'target.png'; 
+    // استدعاء هدف خشبي خارجي لضمان بقاء اللعبة تعمل
+    targetImg.src = 'https://raw.githubusercontent.com/Ademking/Knife-Hit-Clone/master/assets/target.png'; 
 
     const knifeImg = new Image();
-    // استخدام اسم ملف السكين الموجود في حسابك على جيت هاب بالضبط
-    knifeImg.src = '1774680334856.png.png'; 
+    // هذا هو اسم ملفك كما ظهر في الصورة الأخيرة التي أرفقتها
+    knifeImg.src = 'av0z1rcn4.webp.png'; 
 
     let score = 0, angle = 0, knives = [], currentKnifeY = 500, isShooting = false, rotationSpeed = 0.03;
 
@@ -52,40 +50,28 @@
         ctx.save();
         ctx.translate(180, 200);
         ctx.rotate(angle);
-        
-        // رسم الهدف (إذا لم يجد الصورة يرسم دائرة خشبية)
-        if (targetImg.complete && targetImg.naturalWidth !== 0) {
-            ctx.drawImage(targetImg, -80, -80, 160, 160);
-        } else {
-            ctx.fillStyle = "#8b4513";
-            ctx.beginPath(); ctx.arc(0, 0, 80, 0, Math.PI * 2); ctx.fill();
-            ctx.strokeStyle = "#5d2e0a"; ctx.lineWidth = 5; ctx.stroke();
-        }
+        if (targetImg.complete) ctx.drawImage(targetImg, -80, -80, 160, 160);
 
-        // رسم السكاكين المغروزة
         knives.forEach(kAngle => {
             ctx.save();
             ctx.rotate(kAngle);
             if (knifeImg.complete) {
                 ctx.translate(0, 70);
                 ctx.rotate(Math.PI); 
-                // رسم السكين بحجم واضح 50x130
-                ctx.drawImage(knifeImg, -25, -65, 50, 130); 
+                // رسم السكين بحجم HD واضح
+                ctx.drawImage(knifeImg, -20, -60, 40, 120); 
             }
             ctx.restore();
         });
         ctx.restore();
 
-        // رسم سكين اللاعب
         if (knifeImg.complete) {
-            ctx.drawImage(knifeImg, 155, currentKnifeY, 50, 130);
+            ctx.drawImage(knifeImg, 160, currentKnifeY, 40, 120);
         }
 
         if (isShooting) {
             currentKnifeY -= 35;
-            if (currentKnifeY <= 260) {
-                checkCollision();
-            }
+            if (currentKnifeY <= 260) checkCollision();
         }
 
         angle += rotationSpeed;
@@ -98,7 +84,7 @@
         let hit = knives.some(k => Math.abs(currentAngle - (k % (Math.PI * 2))) < 0.4);
 
         if (hit) {
-            alert("خسرت! نتيجتك: " + score);
+            alert("خسرت! النتيجة: " + score);
             resetGame();
         } else {
             knives.push(-angle);
